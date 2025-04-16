@@ -65,9 +65,6 @@ dxy_filtered = dxy_filtered.sort_values("Date")
 yield_filtered = yield_filtered.sort_values("Date")
 
 st.write("📅 Selected date range:", start_date, "→", end_date)
-st.write("📊 DXY filtered rows:", len(dxy_filtered))
-st.write("📊 Yield filtered rows:", len(yield_filtered))
-
 
 # --- MERGE filtered data ---
 merged_df = pd.merge_asof(dxy_filtered, yield_filtered, on="Date").dropna()
