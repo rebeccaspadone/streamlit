@@ -42,21 +42,31 @@ yield_df = yield_df.sort_values('Date')
 # Drop rows where 'Date' is missing
 dxy_df = dxy_df.dropna(subset=["Date"])
 yield_df = yield_df.dropna(subset=["Date"])
-# --- Sidebar with date range input ---
-st.sidebar.header("📅 Date Range Filter")
+# --- Sidebar date selector ---
+st.sidebar.header("📅 Select Date Range")
+
+# Get global min/max dates from DXY dataset
 min_date = dxy_df['Date'].min()
 max_date = dxy_df['Date'].max()
 
+# Let user pick start and end dates
 start_date = st.sidebar.date_input("Start date", min_value=min_date, max_value=max_date, value=min_date)
 end_date = st.sidebar.date_input("End date", min_value=min_date, max_value=max_date, value=max_date)
 
-# --- Filter both dataframes by date range ---
+# Ensure correct order
+if start_date > end_date:
+    st.sidebar.warning("⚠️ Start date must be before end date")
+# Filter both datasets by date
 dxy_filtered = dxy_df[(dxy_df['Date'] >= pd.to_datetime(start_date)) & (dxy_df['Date'] <= pd.to_datetime(end_date))]
 yield_filtered = yield_df[(yield_df['Date'] >= pd.to_datetime(start_date)) & (yield_df['Date'] <= pd.to_datetime(end_date))]
 
-# Drop rows with missing dates (just in case)
-dxy_filtered = dxy_filtered.dropna(subset=["Date"])
-yield_filtered = yield_filtered.dropna(subset=["Date"])
+# Sort before merging
+dxy_filtered = dxy_filtered.sort_values("Date")
+yield_filtered = yield_filtered.sort_values("Date")
+
+# Merge on nearest previous date
+merged_df = pd.merge_asof(dxy_filtered, yield_filtered, on="Date").dropna()
+
 
 # Sort before merge_asof
 dxy_filtered = dxy_filtered.sort_values("Date")
