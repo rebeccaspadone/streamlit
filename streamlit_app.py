@@ -74,38 +74,40 @@ merged_df.dropna(inplace=True)
 st.write("📊 Preview of merged data:", merged_df.head())
 
 
-# --- Plotting ---
+
 fig, ax1 = plt.subplots(figsize=(12, 6))
-# Create a buffer to save the image
+
+# Plot DXY
+ax1.set_xlabel("Date")
+ax1.set_ylabel("DXY", color="crimson")
+ax1.plot(merged_df['Date'], merged_df['DXY'], color="crimson", linewidth=2)
+ax1.tick_params(axis='y', labelcolor='crimson')
+ax1.set_ylim(100, 110)
+
+# Plot 10Y Yield
+ax2 = ax1.twinx()
+ax2.set_ylabel("10Y Yield (%)", color="navy")
+ax2.plot(merged_df['Date'], merged_df['Yield'], color="navy", linewidth=2)
+ax2.tick_params(axis='y', labelcolor='navy')
+ax2.set_ylim(3.4, 5.0)
+
+# Optional: Liberation Day
+ax1.axvline(pd.to_datetime("2025-03-01"), color="black", linestyle="dotted")
+
+fig.tight_layout()
+
+# ✅ Save to buffer BEFORE showing plot
 buf = io.BytesIO()
-fig.savefig(buf, format="png")
+fig.savefig(buf, format="png", bbox_inches="tight")
 buf.seek(0)
+
+# Show chart in app
+st.pyplot(fig)
+
+# Download button
 st.download_button(
     label="📷 Download Chart as PNG",
     data=buf,
     file_name="usd_yield_chart.png",
     mime="image/png"
 )
-
-
-
-# Plot DXY (left axis)
-ax1.plot(merged_df['Date'], merged_df['DXY'], color="crimson", label="US Dollar Index (scaled)", linewidth=2)
-ax1.set_ylim(100, 110)
-ax1.set_xlabel("Date")
-ax1.set_ylabel("US Dollar Index", color="crimson")
-ax1.tick_params(axis='y', labelcolor='crimson')
-
-
-# Plot 10Y Yield (right axis)
-ax2 = ax1.twinx()
-ax2.set_ylabel("10-Year Yield (%)", color="navy")
-ax2.plot(merged_df['Date'], merged_df['Yield'], color="navy", label="10Y Yield")
-ax2.tick_params(axis='y', labelcolor='navy')
-ax2.set_ylim(3.4, 5)
-
-# Optional: add 'liberation day' line (e.g. March 2025)
-ax1.axvline(pd.to_datetime("2025-03-01"), color="black", linestyle="dotted", label="‘Liberation Day’")
-
-fig.tight_layout()
-st.pyplot(fig)
