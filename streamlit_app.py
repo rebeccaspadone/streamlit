@@ -68,8 +68,6 @@ st.write("📅 Selected date range:", start_date, "→", end_date)
 
 # --- MERGE filtered data ---
 merged_df = pd.merge_asof(dxy_filtered, yield_filtered, on="Date").dropna()
-st.write("✅ Merged rows:", len(merged_df))
-
 
 # --- Preview ---
 st.write("📊 Preview of merged data:", merged_df.head())
