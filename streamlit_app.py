@@ -2,6 +2,8 @@ import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
 import yfinance as yf
+import io
+
 
 
 # Download DXY data
@@ -40,6 +42,29 @@ yield_df = yield_df.sort_values('Date')
 # Drop rows where 'Date' is missing
 dxy_df = dxy_df.dropna(subset=["Date"])
 yield_df = yield_df.dropna(subset=["Date"])
+# --- Sidebar with date range input ---
+st.sidebar.header("📅 Date Range Filter")
+min_date = dxy_df['Date'].min()
+max_date = dxy_df['Date'].max()
+
+start_date = st.sidebar.date_input("Start date", min_value=min_date, max_value=max_date, value=min_date)
+end_date = st.sidebar.date_input("End date", min_value=min_date, max_value=max_date, value=max_date)
+
+# --- Filter both dataframes by date range ---
+dxy_filtered = dxy_df[(dxy_df['Date'] >= pd.to_datetime(start_date)) & (dxy_df['Date'] <= pd.to_datetime(end_date))]
+yield_filtered = yield_df[(yield_df['Date'] >= pd.to_datetime(start_date)) & (yield_df['Date'] <= pd.to_datetime(end_date))]
+
+# Drop rows with missing dates (just in case)
+dxy_filtered = dxy_filtered.dropna(subset=["Date"])
+yield_filtered = yield_filtered.dropna(subset=["Date"])
+
+# Sort before merge_asof
+dxy_filtered = dxy_filtered.sort_values("Date")
+yield_filtered = yield_filtered.sort_values("Date")
+
+# Merge for plotting
+merged_df = pd.merge_asof(dxy_filtered, yield_filtered, on="Date").dropna()
+
 
 # --- Merge the two datasets on nearest previous dates ---
 merged_df = pd.merge_asof(dxy_df, yield_df, on='Date')
@@ -51,6 +76,18 @@ st.write("📊 Preview of merged data:", merged_df.head())
 
 # --- Plotting ---
 fig, ax1 = plt.subplots(figsize=(12, 6))
+# Create a buffer to save the image
+buf = io.BytesIO()
+fig.savefig(buf, format="png")
+buf.seek(0)
+st.download_button(
+    label="📷 Download Chart as PNG",
+    data=buf,
+    file_name="usd_yield_chart.png",
+    mime="image/png"
+)
+
+
 
 # Plot DXY (left axis)
 ax1.plot(merged_df['Date'], merged_df['DXY'], color="crimson", label="US Dollar Index (scaled)", linewidth=2)
