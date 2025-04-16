@@ -42,21 +42,21 @@ yield_df = yield_df.sort_values('Date')
 # Drop rows where 'Date' is missing
 dxy_df = dxy_df.dropna(subset=["Date"])
 yield_df = yield_df.dropna(subset=["Date"])
+
 # --- Sidebar date selector ---
 st.sidebar.header("📅 Select Date Range")
 
-# Get global min/max dates from DXY dataset
 min_date = dxy_df['Date'].min()
 max_date = dxy_df['Date'].max()
 
-# Let user pick start and end dates
 start_date = st.sidebar.date_input("Start date", min_value=min_date, max_value=max_date, value=min_date)
 end_date = st.sidebar.date_input("End date", min_value=min_date, max_value=max_date, value=max_date)
 
-# Ensure correct order
 if start_date > end_date:
     st.sidebar.warning("⚠️ Start date must be before end date")
-# Filter both datasets by date
+    st.stop()
+
+# --- FILTER data ---
 dxy_filtered = dxy_df[(dxy_df['Date'] >= pd.to_datetime(start_date)) & (dxy_df['Date'] <= pd.to_datetime(end_date))]
 yield_filtered = yield_df[(yield_df['Date'] >= pd.to_datetime(start_date)) & (yield_df['Date'] <= pd.to_datetime(end_date))]
 
@@ -64,27 +64,20 @@ yield_filtered = yield_df[(yield_df['Date'] >= pd.to_datetime(start_date)) & (yi
 dxy_filtered = dxy_filtered.sort_values("Date")
 yield_filtered = yield_filtered.sort_values("Date")
 
-# Merge on nearest previous date
+st.write("📅 Selected date range:", start_date, "→", end_date)
+st.write("📊 DXY filtered rows:", len(dxy_filtered))
+st.write("📊 Yield filtered rows:", len(yield_filtered))
+
+
+# --- MERGE filtered data ---
 merged_df = pd.merge_asof(dxy_filtered, yield_filtered, on="Date").dropna()
+st.write("✅ Merged rows:", len(merged_df))
 
 
-# Sort before merge_asof
-dxy_filtered = dxy_filtered.sort_values("Date")
-yield_filtered = yield_filtered.sort_values("Date")
-
-# Merge for plotting
-merged_df = pd.merge_asof(dxy_filtered, yield_filtered, on="Date").dropna()
-
-
-# --- Merge the two datasets on nearest previous dates ---
-merged_df = pd.merge_asof(dxy_df, yield_df, on='Date')
-merged_df.dropna(inplace=True)
-
-# --- Show preview of merged data ---
+# --- Preview ---
 st.write("📊 Preview of merged data:", merged_df.head())
 
-
-
+# --- Plotting ---
 fig, ax1 = plt.subplots(figsize=(12, 6))
 
 # Plot DXY
@@ -94,24 +87,24 @@ ax1.plot(merged_df['Date'], merged_df['DXY'], color="crimson", linewidth=2)
 ax1.tick_params(axis='y', labelcolor='crimson')
 ax1.set_ylim(100, 110)
 
-# Plot 10Y Yield
+# Plot Yield
 ax2 = ax1.twinx()
 ax2.set_ylabel("10Y Yield (%)", color="navy")
 ax2.plot(merged_df['Date'], merged_df['Yield'], color="navy", linewidth=2)
 ax2.tick_params(axis='y', labelcolor='navy')
 ax2.set_ylim(3.4, 5.0)
 
-# Optional: Liberation Day
+# Optional vertical line
 ax1.axvline(pd.to_datetime("2025-03-01"), color="black", linestyle="dotted")
 
 fig.tight_layout()
 
-# ✅ Save to buffer BEFORE showing plot
+# Save to buffer
 buf = io.BytesIO()
 fig.savefig(buf, format="png", bbox_inches="tight")
 buf.seek(0)
 
-# Show chart in app
+# Show chart
 st.pyplot(fig)
 
 # Download button
