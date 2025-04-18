@@ -91,6 +91,7 @@ ax2.set_ylim(3.4, 5.0)
 
 # Optional vertical line
 ax1.axvline(pd.to_datetime("2025-03-01"), color="black", linestyle="dotted", label="Liberation Day")
+ax1.legend(loc="lower right")
 
 fig.tight_layout()
 
