@@ -77,20 +77,20 @@ fig, ax1 = plt.subplots(figsize=(12, 6))
 
 # Plot DXY
 ax1.set_xlabel("Date")
-ax1.set_ylabel("DXY", color="crimson")
+ax1.set_ylabel("US Dollar Index", color="crimson")
 ax1.plot(merged_df['Date'], merged_df['DXY'], color="crimson", linewidth=2)
 ax1.tick_params(axis='y', labelcolor='crimson')
 ax1.set_ylim(100, 110)
 
 # Plot Yield
 ax2 = ax1.twinx()
-ax2.set_ylabel("10Y Yield (%)", color="navy")
+ax2.set_ylabel("10Y US Yield (%)", color="navy")
 ax2.plot(merged_df['Date'], merged_df['Yield'], color="navy", linewidth=2)
 ax2.tick_params(axis='y', labelcolor='navy')
 ax2.set_ylim(3.4, 5.0)
 
 # Optional vertical line
-ax1.axvline(pd.to_datetime("2025-03-01"), color="black", linestyle="dotted")
+ax1.axvline(pd.to_datetime("2025-03-01"), color="black", linestyle="dotted", label="Liberation Day")
 
 fig.tight_layout()
 
